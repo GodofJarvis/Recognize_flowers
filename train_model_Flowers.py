@@ -8,19 +8,20 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.layers import Conv2D, Dense, Activation, Flatten, Dropout, BatchNormalization
 
-
 class RECOGNIZE_FLOWERS():
     def __init__(self):
         self.num_epochs = 3
         self.batch_size = 40
         self.input_height = 500
         self.input_width = 500
+        self.channels = 3
+        self.input_shape = (self.input_height, self.input_width, self.channels)
 
-        self.train_dir = "HE_Challenge_data/data/train"
+        self.train_dir = "Flower_images/data/train"
         self.train_files = []
         for i in range(0,200):
             self.train_files.append(str(i) + ".jpg")
-        self.labels = pd.read_csv("HE_Challenge_data/data/train.csv")
+        self.labels = pd.read_csv("Flower_images/data/train.csv")
         self.train_labels = self.labels[:280]
         self.train_labels_dict = {i:j for i,j in zip(self.train_labels["image_id"], self.train_labels["category"])}
 
@@ -32,7 +33,7 @@ class RECOGNIZE_FLOWERS():
     def buildAndCompileModel(self):
         self.model = Sequential()
         self.model.add(Conv2D(16, (3,3), padding='same',
-                         input_shape=(500,500,3)))
+                         input_shape=self.input_shape))
         self.model.add(Activation('relu'))
         self.model.add(Conv2D(16,(3,3)))
         self.model.add(Activation('relu'))
@@ -72,7 +73,7 @@ class RECOGNIZE_FLOWERS():
             for i in range(self.batch_size):
                 img = str(input_files[counter + i])
                 images[i] = np.array(Image.open(img)) / 255.0
-                file_number = img.replace("HE_Challenge_data/data/train/","").replace(".jpg","")
+                file_number = img.replace("Flower_images/data/train/","").replace(".jpg","")
                 labels.append(self.train_labels_dict[int(file_number)])
             yield(images, labels)
             counter += self.batch_size
@@ -80,6 +81,8 @@ class RECOGNIZE_FLOWERS():
 
 def main():
     recognizeFlowers = RECOGNIZE_FLOWERS()
+    recognizeFlowers.buildAndCompileModel()
+    recognizeFlowers.train_model()
 
 if __name__== "__main__":
     main()
